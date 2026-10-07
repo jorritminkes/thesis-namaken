@@ -4,9 +4,8 @@ from metric import inv_metric
 def derivatives_ddt(states):
     M = 1.0
     r_s = 2.0 * M
-    # t = states[:,0]
+    
     r = states[:,1]
-    # theta = states[:,2]
     
     p_t = states[:,3]
     p_r = states[:,4]
@@ -17,7 +16,7 @@ def derivatives_ddt(states):
     
     f = 1.0 - r_s/r
     
-    d_r_gtt = -1/(f**2) * r_s/r**2
+    d_r_gtt = r_s / (r**2 * f**2)
     d_r_grr = r_s/r**2
     d_r_gthetatheta = -2.0/r**3
     
@@ -26,7 +25,8 @@ def derivatives_ddt(states):
     dtheta_dlambda = g_inv[:,2] * p_theta
     
     dp_t_dlambda = 0.0
-    dp_r_dlambda = 0.5 * (d_r_gtt * p_t**2 + d_r_grr * p_r**2 + d_r_gthetatheta * p_theta**2)
+    # dp_r_dlambda = 0.5 * (d_r_gtt * p_t**2 + d_r_grr * p_r**2 + d_r_gthetatheta * p_theta**2)
+    dp_r_dlambda = - 0.5 * (d_r_gtt * p_t**2 + d_r_grr * p_r**2 + d_r_gthetatheta * p_theta**2)
     dp_theta_dlambda = 0.0
     
     dlambda_dt = 1.0 / dt_dlambda
@@ -47,4 +47,55 @@ def derivatives_ddt(states):
     derivatives[:, 5] = dp_theta_dt
     
     return derivatives
+
+def rk4_single_step(states, h):
+    k1 = derivatives_ddt(states)
+    k2 = derivatives_ddt(states + 0.5 * h * k1)
+    k3 = derivatives_ddt(states + 0.5 * h * k2)
+    k4 = derivatives_ddt(states + h * k3)
+    return states + (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+
+def integrate_rays(initial_states, t_min, t_max, t_steps, R_max = 100, horizon_eps=1e-2):
+    M = 1.0
+    r_s = 2.0 * M
     
+    h = (t_max - t_min) / t_steps
+    
+    states = np.asarray(initial_states, dtype=np.float64).copy()
+    n_rays = states.shape[0]
+    
+    history = np.empty((t_steps + 1, n_rays, 6), dtype=np.float64)
+    history[0] = states
+    
+    active = np.ones(n_rays, dtype=bool)
+    
+    for i in range(1, t_steps + 1):
+        if active.any():
+            idx = np.flatnonzero(active)
+            new = rk4_single_step(states[idx], h)
+            
+            ok = np.isfinite(new).all(axis=1)
+            idx = np.flatnonzero(active)
+            states[idx[ok]] = new[ok]
+            active[idx[~ok]] = False
+            
+            r = states[:, 1]
+            active &= (r > r_s * (1.0 + horizon_eps)) & (r < R_max)
+        
+        history[i] = states
+    
+    return history
+
+
+
+
+
+
+
+
+
+
+
+
+
+
