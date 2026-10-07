@@ -1,6 +1,6 @@
 import numpy as np
 from metric import metric
-from coordinates import cart_to_pol
+from coordinates import cart_to_pol, mom_cart_to_pol
 
 def create_initial_positions(y_rays, y_size, x_0):
     t_initials = np.zeros(y_rays)
@@ -9,22 +9,19 @@ def create_initial_positions(y_rays, y_size, x_0):
     rays_initial_positions = np.column_stack((t_initials, x_initials, y_initials))
     return rays_initial_positions
 
-def create_initial_state(rays_initial_positions):
+def create_initial_states(y_rays, y_size, x_0):
+    rays_initial_positions = create_initial_positions(y_rays, y_size, x_0)
     number_of_rays = rays_initial_positions.shape[0]
     initial_states = np.empty((number_of_rays, 6), dtype=np.float64)
     
-    for i, initial_ray in enumerate(rays_initial_positions):
-        polar_pos = cart_to_pol(initial_ray)
-        metric_values = metric(polar_pos, 1)
+    p_t = -1.0
+    p_x = -1.0
+    p_y = 0.0
+    
+    for i, position in enumerate(rays_initial_positions):
         
-        t0, r0, theta0 = cart_to_pol(initial_ray)
-        
-        pmu_cart = np.array([0,-1,0])
-        # we should not use pmu_cart, but pmu_polar via jacobian...
-        p_t0 = -1
-        p_r0 = metric_values[1] * pmu_cart[1]
-        p_theta0 = metric_values[2] * pmu_cart[2]
-        
-        initial_states[i] = (t0, r0, theta0, p_t0, p_r0, p_theta0)
-    print(initial_states)
+        cartesian_state = np.array([position[0], position[1], position[2],
+                                    p_t, p_x, p_y])
+        initial_states[i] = mom_cart_to_pol(cartesian_state)
+    
     return initial_states
