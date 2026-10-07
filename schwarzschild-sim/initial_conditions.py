@@ -13,11 +13,6 @@ def create_initial_states(y_rays, y_size, x_0, t_min):
     cartesian_initial_positions = create_initial_positions(y_rays, y_size, x_0, t_min)
     number_of_rays = cartesian_initial_positions.shape[0]
     
-    # g = metric(polar_initial_positions, 1.0)
-    
-    # r = polar_initial_positions[:, 1]
-    # theta = polar_initial_positions[:, 2]
-    
     px0 = -1.0
     py0 = 0.0
     pt0 = 0.0 # Placeholder for array shape

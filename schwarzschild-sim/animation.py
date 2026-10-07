@@ -15,6 +15,7 @@ def plot_rays(ray_states):
         ax.plot(x[:, i], y[:, i])
     
     hole = plt.Circle((0, 0), 2, color="black")
+    ax.add_artist(hole)
     
     ax.set_xlim(-10, 20)
     ax.set_ylim(-15, 15)
