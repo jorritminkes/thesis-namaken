@@ -34,7 +34,7 @@ def jacobian_pol_to_cart(polar_positions):
     jacobian[..., 2, 2] = r * np.cos(theta)
     return jacobian
 
-def mom_cart_to_pol(cartesian_states):
+def mom_cov_cart_to_pol(cartesian_states):
     p_t = cartesian_states[..., 3]
     p_x = cartesian_states[..., 4]
     p_y = cartesian_states[..., 5]
@@ -48,4 +48,31 @@ def mom_cart_to_pol(cartesian_states):
     polar_states[..., 4] = jacobian[..., 1, 1] * p_x + jacobian[..., 2, 1] * p_y
     polar_states[..., 5] = jacobian[..., 1, 2] * p_x + jacobian[..., 2, 2] * p_y
     
+    return polar_states
+
+def jacobian_cart_to_pol(polar_positions):
+    r = polar_positions[..., 1]
+    theta = polar_positions[..., 2]
+
+    jacobian_inv = np.zeros(polar_positions.shape[:-1] + (3, 3), dtype=np.float64)
+    jacobian_inv[..., 0, 0] = 1.0
+    jacobian_inv[..., 1, 1] = np.cos(theta)
+    jacobian_inv[..., 1, 2] = np.sin(theta)
+    jacobian_inv[..., 2, 1] = -np.sin(theta) / r
+    jacobian_inv[..., 2, 2] = np.cos(theta) / r
+    return jacobian_inv
+
+def mom_contra_cart_to_pol(cartesian_states):
+    p_t = cartesian_states[..., 3]
+    p_x = cartesian_states[..., 4]
+    p_y = cartesian_states[..., 5]
+
+    polar_positions = cart_to_pol(cartesian_states[..., :3])
+    jacobian_inv = jacobian_cart_to_pol(polar_positions)
+
+    polar_states = np.empty(cartesian_states.shape)
+    polar_states[..., :3] = polar_positions
+    polar_states[..., 3] = jacobian_inv[..., 0, 0] * p_t
+    polar_states[..., 4] = jacobian_inv[..., 1, 1] * p_x + jacobian_inv[..., 1, 2] * p_y
+    polar_states[..., 5] = jacobian_inv[..., 2, 1] * p_x + jacobian_inv[..., 2, 2] * p_y
     return polar_states
