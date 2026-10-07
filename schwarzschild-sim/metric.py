@@ -1,4 +1,5 @@
-def metric(t, r, theta, M):
+def metric(position, M):
+    t, r, theta = position
     r_s = 2*M
     f = 1 - r_s/r
     g_tt = -f
@@ -6,7 +7,8 @@ def metric(t, r, theta, M):
     g_thth = r*r
     return g_tt, g_rr, g_thth
 
-def inv_metric(t, r, theta, M):
+def inv_metric(position, M):
+    t, r, theta = position
     r_s = 2*M
     f = 1 - r_s/r
     gtt = -1/f
