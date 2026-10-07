@@ -8,7 +8,7 @@ from geodesics import derivatives_ddt, integrate_rays
 from animation import plot_rays
 from analysis import find_qstar, find_closest_turning_ray
 
-y_rays = 2000
+y_rays = 3000
 y_size = 6
 x_0 = 20
 
